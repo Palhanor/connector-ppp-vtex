@@ -1,23 +1,26 @@
-# uvicorn main:app --reload
-
-# TODO: Criar uma função para processar cada operação
-# TODO: Validações ---
-#   Os campos obrigatórios do payload da request são recebidos
-#   O paymentId existe dentro do DB
-#   O paymentId da rota é o mesmo do payload
-#   Garantir que todos os dados obrigatórios estão sendo retornados
-#   Garatnir que tudo é consistente com o paymentId em questão
-#   Alterar o paymentId enquanto o processamento é realizado
-#   Garantir que o valor no campo da resposta é o mesmo que no campo da requisição (ou alterado quando necessário, tipo o value)
+# TODO: Create a function to proccess every endpoint
+# TODO: Implement all the validations
+#   The required fields must exist on the request payload (doc)
+#   The required fields must exist on the response payload (doc)
+#   The paymentId must refer to an actual payment inside the mock_db
+#   Make changes on the stored payment as the non authrization routes are called
 
 from fastapi import Request, FastAPI
 
 app = FastAPI()
 
-db = [
+mocked_db = [
 
-]  # TODO: Criar uma classe transaction que vai sendo montada a medida que o fluxo é desenvolvido
+]
 
+def paymentId_consistency(endpoint_paymentId, body_paymentId):
+    return endpoint_paymentId == body_paymentId
+
+# TODO: Implement the class with all the required information about the payment
+class Payment:
+    def __init__(self, payment):
+        paymentId = payment["paymentId"]
+        authorizationStatus = "undefined"
 
 @app.get("/manifest")
 async def manifest():
@@ -58,7 +61,12 @@ async def manifest():
 @app.post("/payments")
 async def payments(request: Request):
     body = await request.json()
-    paymentId = body["paymentId"]
+    paymentId = body.get("paymentId", None)
+    # TODO: Create a function that gets the body andd the list of required informations and returns if something is missing
+    if not paymentId:
+        # TODO: Format the response with 400 status
+        return "The paymentId value is required"  # Status 400
+    # TODO: Format the response with the 200 (?) status
     return {
         "paymentId": paymentId,
         "status": "approved",
@@ -76,10 +84,13 @@ async def payments(request: Request):
 
 
 @app.post("/payments/{id}/cancellations")
-async def concellation(request: Request, id: str):
+async def cancellations(request: Request, id: str):
     body = await request.json()
     paymentId = body["paymentId"]
     requestId = body["requestId"]
+    if not paymentId_consistency(id, paymentId):
+        # TODO: Format the response with 400 status
+        return "The paymentId values are divergent"
     return {
         "paymentId": paymentId,
         "message": "Successfully cancelled",
@@ -90,11 +101,14 @@ async def concellation(request: Request, id: str):
 
 
 @app.post("/payments/{id}/settlements")
-async def settlement(request: Request, id: str):
+async def settlements(request: Request, id: str):
     body = await request.json()
     paymentId = body["paymentId"]
     value = body["value"]
     requestId = body["requestId"]
+    if not paymentId_consistency(id, paymentId):
+        # TODO: Format the response with 400 status
+        return "The paymentId values are divergent"
     return {
         "paymentId": paymentId,
         "settleId": "CEE16492C6",
@@ -106,12 +120,14 @@ async def settlement(request: Request, id: str):
 
 
 @app.post("/payments/{id}/refunds")
-async def refund(request: Request, id: str):
+async def refunds(request: Request, id: str):
     body = await request.json()
     paymentId = body["paymentId"]
     value = body["value"]
     requestId = body["requestId"]
-
+    if not paymentId_consistency(id, paymentId):
+        # TODO: Format the response with 400 status
+        return "The paymentId values are divergent"
     return {
         "paymentId": paymentId,
         "refundId": None,
