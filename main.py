@@ -59,10 +59,15 @@ async def payments(request: Request):
     if not paymentId:
         # TODO: Format the response with 400 status
         return {"error": "The paymentId value is required"}
+    # TODO: I'll need to update this strategy in order to support the "undefined" and async flow
+    status = {
+        "4444333322221111": "approved",
+        "4444333322221112": "denied",
+    }
     # TODO: Format the response with the 200 (?) status
     return {
         "paymentId": paymentId,
-        "status": "approved",
+        "status": status[card_number],
         "authorizationId": "AUT-E4B9C36034-ASYNC",
         "paymentUrl": "https://exemplo2.vtexpayments.com.br/api/pub/fake-payment-provider/payment-redirect/611966/payments/5B127F1E0C944EF9ACE264FEC1FC0E91",
         "nsu": "NSU-171BE62CB7-ASYNC",
