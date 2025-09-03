@@ -5,22 +5,15 @@
 #   The paymentId must refer to an actual payment inside the mock_db
 #   Make changes on the stored payment as the non authrization routes are called
 
-from fastapi import Request, FastAPI
+from fastapi import FastAPI, Request
+from utils.utils import paymentId_consistency
+# from entity.payment import Payment
 
 app = FastAPI()
 
 mocked_db = [
 
 ]
-
-def paymentId_consistency(endpoint_paymentId, body_paymentId):
-    return endpoint_paymentId == body_paymentId
-
-# TODO: Implement the class with all the required information about the payment
-class Payment:
-    def __init__(self, payment):
-        paymentId = payment["paymentId"]
-        authorizationStatus = "undefined"
 
 @app.get("/manifest")
 async def manifest():
@@ -62,10 +55,10 @@ async def manifest():
 async def payments(request: Request):
     body = await request.json()
     paymentId = body.get("paymentId", None)
-    # TODO: Create a function that gets the body andd the list of required informations and returns if something is missing
+    # TODO: Create a function that gets the body and the list of required informations and returns if something is missing
     if not paymentId:
         # TODO: Format the response with 400 status
-        return "The paymentId value is required"  # Status 400
+        return {"error": "The paymentId value is required"}
     # TODO: Format the response with the 200 (?) status
     return {
         "paymentId": paymentId,
