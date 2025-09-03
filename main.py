@@ -1,3 +1,4 @@
+# TODO: Implement the asyn flow to approved or denied transactions
 # TODO: Create a function to proccess every endpoint
 # TODO: Implement all the validations
 #   The required fields must exist on the request payload (doc)
@@ -5,13 +6,27 @@
 #   The paymentId must refer to an actual payment inside the mock_db
 #   Make changes on the stored payment as the non authrization routes are called
 
-from fastapi import FastAPI, Request
+# I need to update the requirements.txt
+import asyncio
+import httpx
+from fastapi import FastAPI, Request, BackgroundTasks
 from utils.utils import paymentId_consistency
 # from entity.payment import Payment
 
 app = FastAPI()
 
 mocked_db = []
+
+async def request_gateway(callbackUrl: str, payload: dict):
+    await asyncio.sleep(15)
+    async with httpx.AsyncClient() as client:
+        # TODO: it is necessary to set the AppKey and AppToken as environment variables
+        headers = {
+            "X-VTEX-AppKey": "",
+            "X-VTEX-AppToken": ""
+        }
+
+        await client.post(callbackUrl, headers=headers, json=payload)
 
 @app.get("/manifest")
 async def manifest():
@@ -50,35 +65,65 @@ async def manifest():
 
 
 @app.post("/payments")
-async def payments(request: Request):
+async def payments(request: Request, background_tasks: BackgroundTasks):
     body = await request.json()
     paymentId = body.get("paymentId", None)
     card = body.get("card", None)
     card_number = card.get("number", None)
+    callbackUrl = body.get("callbackUrl", None)
+
     # TODO: Create a function that gets the body and the list of required informations and returns if something is missing
     if not paymentId:
         # TODO: Format the response with 400 status
         return {"error": "The paymentId value is required"}
-    # TODO: I'll need to update this strategy in order to support the "undefined" and async flow
-    status = {
+
+    status_codes = {
         "4444333322221111": "approved",
         "4444333322221112": "denied",
     }
-    # TODO: Format the response with the 200 (?) status
-    return {
-        "paymentId": paymentId,
-        "status": status[card_number],
-        "authorizationId": "AUT-E4B9C36034-ASYNC",
-        "paymentUrl": "https://exemplo2.vtexpayments.com.br/api/pub/fake-payment-provider/payment-redirect/611966/payments/5B127F1E0C944EF9ACE264FEC1FC0E91",
-        "nsu": "NSU-171BE62CB7-ASYNC",
-        "tid": "TID-20E659E8E5-ASYNC",
-        "acquirer": "TestPay",
-        "code": "2000-ASYNC",
-        "message": None,
-        "delayToAutoSettle": 21600,
-        "delayToAutoSettleAfterAntifraud": 1800,
-        "delayToCancel": 21600
-    }
+    status = status_codes.get(card_number, "undefined")
+    async_flow = status == "undefined"
+
+    if async_flow:
+        final_status = {
+            "4222222222222224": "approved",
+            "4222222222222225": "denied",
+        }
+        final_payload = {
+            "paymentId": paymentId,
+            "status": final_status.get(card_number, "approved"),
+            "authorizationId": "184520",
+            "nsu": "21705348",
+            "tid": "21705348",
+            "acquirer": "pagmm",
+            "code": "0000",
+            "message": "Successfully approved transaction",
+            "delayToAutoSettle": 1200,
+            "delayToAutoSettleAfterAntifraud": 1200,
+            "delayToCancel": 86400,
+            "cardBrand": "Visa",
+            "firstDigits": "534696",
+            "lastDigits": "6921",
+            "maxValue": 16.6
+        }
+        background_tasks.add_task(request_gateway, callbackUrl, final_payload)
+
+    else:
+        # TODO: Format the response with the 200 (?) status
+        return {
+            "paymentId": paymentId,
+            "status": status,
+            "authorizationId": "AUT-E4B9C36034-ASYNC",
+            "paymentUrl": "https://exemplo2.vtexpayments.com.br/api/pub/fake-payment-provider/payment-redirect/611966/payments/5B127F1E0C944EF9ACE264FEC1FC0E91",
+            "nsu": "NSU-171BE62CB7-ASYNC",
+            "tid": "TID-20E659E8E5-ASYNC",
+            "acquirer": "TestPay",
+            "code": "2000-ASYNC",
+            "message": None,
+            "delayToAutoSettle": 21600,
+            "delayToAutoSettleAfterAntifraud": 1800,
+            "delayToCancel": 21600
+        }
 
 
 @app.post("/payments/{id}/cancellations")
