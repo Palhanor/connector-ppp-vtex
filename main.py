@@ -24,14 +24,16 @@ app_key = os.getenv("APP_KEY")
 app_token = os.getenv("APP_TOKEN")
 
 async def request_gateway(callbackUrl: str, payload: dict):
-    await asyncio.sleep(10)
+    seconds = 6
+    print(f"WAITING {seconds} SECONDS")
+    await asyncio.sleep(seconds)
+    print("NOW IT'S TIME TO START THE REQUEST")
     async with httpx.AsyncClient() as client:
-        # TODO: it is necessary to set the AppKey and AppToken as environment variables
         headers = {
             "X-VTEX-API-AppKey": app_key,
             "X-VTEX-API-AppToken": app_token
         }
-        print("SENDING THE REQUEST TO VTEX GATEWAY")
+        print(f"SENDING THE REQUEST TO VTEX GATEWAY FOR PAYMENT {payload['paymentId']}")
         await client.post(callbackUrl, headers=headers, json=payload)
 
 @app.get("/manifest")
