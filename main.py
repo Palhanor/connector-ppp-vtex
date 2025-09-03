@@ -11,9 +11,7 @@ from utils.utils import paymentId_consistency
 
 app = FastAPI()
 
-mocked_db = [
-
-]
+mocked_db = []
 
 @app.get("/manifest")
 async def manifest():
@@ -55,6 +53,8 @@ async def manifest():
 async def payments(request: Request):
     body = await request.json()
     paymentId = body.get("paymentId", None)
+    card = body.get("card", None)
+    card_number = card.get("number", None)
     # TODO: Create a function that gets the body and the list of required informations and returns if something is missing
     if not paymentId:
         # TODO: Format the response with 400 status
