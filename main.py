@@ -6,7 +6,6 @@
 #   The paymentId must refer to an actual payment inside the mock_db
 #   Make changes on the stored payment as the non authrization routes are called
 
-# I need to update the requirements.txt
 import asyncio
 import httpx
 from fastapi import FastAPI, Request, BackgroundTasks
@@ -22,8 +21,8 @@ async def request_gateway(callbackUrl: str, payload: dict):
     async with httpx.AsyncClient() as client:
         # TODO: it is necessary to set the AppKey and AppToken as environment variables
         headers = {
-            "X-VTEX-AppKey": "",
-            "X-VTEX-AppToken": ""
+            "X-VTEX-API-AppKey": "",
+            "X-VTEX-API-AppToken": ""
         }
 
         await client.post(callbackUrl, headers=headers, json=payload)
@@ -106,24 +105,23 @@ async def payments(request: Request, background_tasks: BackgroundTasks):
             "lastDigits": "6921",
             "maxValue": 16.6
         }
+
         background_tasks.add_task(request_gateway, callbackUrl, final_payload)
 
-    else:
-        # TODO: Format the response with the 200 (?) status
-        return {
-            "paymentId": paymentId,
-            "status": status,
-            "authorizationId": "AUT-E4B9C36034-ASYNC",
-            "paymentUrl": "https://exemplo2.vtexpayments.com.br/api/pub/fake-payment-provider/payment-redirect/611966/payments/5B127F1E0C944EF9ACE264FEC1FC0E91",
-            "nsu": "NSU-171BE62CB7-ASYNC",
-            "tid": "TID-20E659E8E5-ASYNC",
-            "acquirer": "TestPay",
-            "code": "2000-ASYNC",
-            "message": None,
-            "delayToAutoSettle": 21600,
-            "delayToAutoSettleAfterAntifraud": 1800,
-            "delayToCancel": 21600
-        }
+    return {
+        "paymentId": paymentId,
+        "status": status,
+        "authorizationId": "AUT-E4B9C36034-ASYNC",
+        "paymentUrl": "https://exemplo2.vtexpayments.com.br/api/pub/fake-payment-provider/payment-redirect/611966/payments/5B127F1E0C944EF9ACE264FEC1FC0E91",
+        "nsu": "NSU-171BE62CB7-ASYNC",
+        "tid": "TID-20E659E8E5-ASYNC",
+        "acquirer": "TestPay",
+        "code": "2000-ASYNC",
+        "message": None,
+        "delayToAutoSettle": 21600,
+        "delayToAutoSettleAfterAntifraud": 1800,
+        "delayToCancel": 21600
+    }
 
 
 @app.post("/payments/{id}/cancellations")
