@@ -10,8 +10,8 @@ To do so, you can insert its endpoint inside the serviceUrl field, then select a
 
 Currently, the system already implements the following test flows:
 - [x] Approved Flow
-- [X] Canceled Flow
-- [ ] Denied Flow
+- [x] Canceled Flow
+- [x] Denied Flow
 - [ ] Aproved Flow Async
 - [ ] Denied Flow Async
 - [ ] Bank Invoice

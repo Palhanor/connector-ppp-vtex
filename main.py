@@ -1,13 +1,16 @@
 # TODO: Implement the asyn flow to approved or denied transactions
 # TODO: Create a function to proccess every endpoint
+# TODO: Use the mocked_db in order to store the payments in memory
 # TODO: Implement all the validations
 #   The required fields must exist on the request payload (doc)
 #   The required fields must exist on the response payload (doc)
 #   The paymentId must refer to an actual payment inside the mock_db
 #   Make changes on the stored payment as the non authrization routes are called
 
-import asyncio
+import os
 import httpx
+import asyncio
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request, BackgroundTasks
 from utils.utils import paymentId_consistency
 # from entity.payment import Payment
@@ -16,15 +19,19 @@ app = FastAPI()
 
 mocked_db = []
 
+load_dotenv()
+app_key = os.getenv("APP_KEY")
+app_token = os.getenv("APP_TOKEN")
+
 async def request_gateway(callbackUrl: str, payload: dict):
-    await asyncio.sleep(15)
+    await asyncio.sleep(10)
     async with httpx.AsyncClient() as client:
         # TODO: it is necessary to set the AppKey and AppToken as environment variables
         headers = {
-            "X-VTEX-API-AppKey": "",
-            "X-VTEX-API-AppToken": ""
+            "X-VTEX-API-AppKey": app_key,
+            "X-VTEX-API-AppToken": app_token
         }
-
+        print("SENDING THE REQUEST TO VTEX GATEWAY")
         await client.post(callbackUrl, headers=headers, json=payload)
 
 @app.get("/manifest")
