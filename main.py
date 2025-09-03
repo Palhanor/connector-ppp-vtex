@@ -11,7 +11,7 @@ import os
 import httpx
 import asyncio
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, BackgroundTasks
+from fastapi import FastAPI, Request
 from utils.utils import paymentId_consistency
 # from entity.payment import Payment
 
@@ -73,7 +73,7 @@ async def manifest():
 
 
 @app.post("/payments")
-async def payments(request: Request, background_tasks: BackgroundTasks):
+async def payments(request: Request):
     body = await request.json()
     paymentId = body.get("paymentId", None)
     card = body.get("card", None)
@@ -115,7 +115,7 @@ async def payments(request: Request, background_tasks: BackgroundTasks):
             "maxValue": 16.6
         }
 
-        background_tasks.add_task(request_gateway, callbackUrl, final_payload)
+        asyncio.create_task(request_gateway(callbackUrl, final_payload))
 
     return {
         "paymentId": paymentId,
